@@ -1,0 +1,12 @@
+beautifulsoup4
+faiss-cpu
+fastapi
+langchain-community
+langchain-core
+langchain-openai
+langchain-text-splitters
+neo4j
+python-dotenv
+requests
+uvicorn[standard]
+

@@ -1,0 +1,44 @@
+services:
+  neo4j:
+    image: neo4j:5-community
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?Set NEO4J_PASSWORD in .env}
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+    volumes:
+      - scheme_data:/app/data
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    env_file: .env
+    environment:
+      BACKEND_URL: http://backend:8000
+      FAISS_INDEX_PATH: /app/data/processed/tn_schemes_faiss
+    volumes:
+      - scheme_data:/app/data:ro
+    ports:
+      - "${STREAMLIT_PORT:-8501}:8501"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  neo4j_data:
+  scheme_data:
+
